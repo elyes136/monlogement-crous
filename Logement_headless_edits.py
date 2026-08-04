@@ -162,18 +162,25 @@ def search_city(city):
                     house_address = house.find_element(By.CSS_SELECTOR, HOUSE_ADDRESS_SELECTOR).text.strip()
                     # Extract house surface
                     surface = house.find_element(By.XPATH, HOUSE_SURFACE_SELECTOR).text.strip()
-                    surface_match = re.search(r"(\d+,\d+) m²", surface)
-                    if surface_match:
-                        surface_formatted = surface_match.group(1).replace(",", ".")  # Format surface
+                    range_match = re.search(r"(\d+(?:,\d+)?)\s*à\s*(\d+(?:,\d+)?)\s*m²", surface)
+                    single_match = re.search(r"(\d+(?:,\d+)?)\s*m²", surface)
+                    if range_match:
+                        low = range_match.group(1).replace(",", ".")
+                        high = range_match.group(2).replace(",", ".")
+                        surface_formatted = f"{low}-{high}"  # e.g. "16-18"
+                    elif single_match:
+                        surface_formatted = single_match.group(1).replace(",", ".")
                     else:
                         surface_formatted = "N/A"  # Handle missing or unexpected surface format
+
                     # Extract house price
                     price = house.find_element(By.XPATH, HOUSE_PRICE_SELECTOR).text.strip()
-                    price_match = re.search(r"(\d+,\d+) €", price)
+                    price_match = re.search(r"(\d+,\d+)\s*€", price)
                     if price_match:
                         price_formatted = price_match.group(1).replace(",", ".")  # Format price
                     else:
-                        price_formatted = "N/A"  # Handle missing or unexpected price format
+                        price_match = re.search(r"(\d+)\s*€", price)
+                        price_formatted = price_match.group(1) if price_match else "N/A"
                     
                     # Print house details
                     print(Fore.GREEN + f"🏠 House Name: {house_name}" + Style.RESET_ALL)
